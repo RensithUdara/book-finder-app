@@ -71,7 +71,7 @@ function App() {
                   <p className="author">
                     <strong>Author:</strong> {book.volumeInfo.authors?.join(", ") || "N/A"}
                   </p>
-                  <p>{book.volumeInfo.description || "No description available"}</p>
+                  <p>{book.volumeInfo.description || "No description available."}</p>
                 </div>
               </div>
             ))}
