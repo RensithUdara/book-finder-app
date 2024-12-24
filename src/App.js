@@ -17,15 +17,15 @@ function App() {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `https://www.googleapis.com/books/v1/volumes?q=${searchQuery}&maxResults=10`
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=10`
       );
-      setBooks(response.data.items); // Store the books data in the state
+      setBooks(response.data.items || []); // Safeguard against undefined response
       setError(""); // Clear any previous error
       setInputError(""); // Clear input error
       setIsSearched(true); // Mark that a search has been performed
     } catch (err) {
       setBooks([]); // Clear previous books data
-      setError("An error occurred while fetching the books.");
+      setError("An error occurred while fetching the books. Please try again later.");
       setIsSearched(true); // Mark that a search has been performed
     } finally {
       setIsLoading(false); // Stop loading after the request completes
@@ -35,7 +35,7 @@ function App() {
   // Event handler for form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    
+
     // Input validation
     if (searchQuery.trim().length < 3) {
       setInputError("Please enter at least 3 characters for the search.");
@@ -51,43 +51,46 @@ function App() {
     <div className="App">
       <header>
         <h1>Book Finder</h1>
-        <form onSubmit={handleSearchSubmit}>
+        <form onSubmit={handleSearchSubmit} className="search-form">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for books..."
           />
-          <button type="submit" disabled={isLoading}>Search</button>
+          <button type="submit" disabled={isLoading} className="search-button">
+            {isLoading ? "Searching..." : "Search"}
+          </button>
         </form>
         {inputError && <p className="error-message">{inputError}</p>}
       </header>
 
       <main>
         {isLoading && <p>Loading...</p>} {/* Show loading state */}
-        {error && <p>{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
         {isSearched && books.length === 0 && searchQuery.trim() !== "" && (
-          <p>No books found for "{searchQuery}"</p>
+          <p className="no-results">No books found for "{searchQuery}"</p>
         )}
 
         {books.length > 0 && (
           <div className="book-list">
             {books.map((book) => (
               <div className="book-item" key={book.id}>
-                {/* Optional Book Tag: You can modify this based on your data */}
                 <div className="book-tag">New</div>
                 <img
-                  src={book.volumeInfo.imageLinks?.thumbnail}
-                  alt={book.volumeInfo.title}
-                  style={{ width: "100%", height: "350px", objectFit: "cover" }}
+                  src={book.volumeInfo.imageLinks?.thumbnail || "https://via.placeholder.com/150"}
+                  alt={book.volumeInfo.title || "Book cover"}
+                  className="book-cover"
                 />
                 <div className="book-details">
-                  <h2>{book.volumeInfo.title}</h2>
+                  <h2>{book.volumeInfo.title || "Untitled"}</h2>
                   <p className="author">
-                    <strong>Author:</strong> {book.volumeInfo.authors?.join(", ") || "N/A"}
+                    <strong>Author:</strong> {book.volumeInfo.authors?.join(", ") || "Unknown"}
                   </p>
-                  <p>{book.volumeInfo.description || "No description available."}</p>
+                  <p className="description">
+                    {book.volumeInfo.description || "No description available."}
+                  </p>
                 </div>
               </div>
             ))}
